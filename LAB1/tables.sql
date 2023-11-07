@@ -8,7 +8,7 @@ CREATE TABLE Students(
 CREATE TABLE Branches(
   name TEXT,
   program TEXT,
-  PRIMARY KEY (name, program)
+  PRIMARY KEY(name, program)
 );
 
 CREATE TABLE Courses(
@@ -19,49 +19,77 @@ CREATE TABLE Courses(
 );
 
 CREATE TABLE LimitedCourses(
-  FOREIGN KEY(code) REFERENCES Courses(code),
-  capacity INT
-  PRIMARY KEY(code)
+  code TEXT PRIMARY KEY,
+  capacity INT,
+  FOREIGN KEY(code) REFERENCES Courses(code)
 );
 
 CREATE TABLE StudentBranches(
+  student TEXT PRIMARY KEY,
+  branch TEXT,
+  program TEXT,
   FOREIGN KEY(student) REFERENCES Students(idnr),
-  FOREIGN KEY (branch, program) REFERENCES Branches(name, program),
-  PRIMARY KEY(student)
+  FOREIGN KEY(branch, program) REFERENCES Branches(name, program)
 );
 
 CREATE TABLE Classifications(
-  name TEXT PRIMARY KEY,
+  name TEXT PRIMARY KEY
+);
+
+CREATE TABLE Classified (
+  course TEXT,
+  classification TEXT,
+  FOREIGN KEY(classification) REFERENCES Classifications(name),
+  PRIMARY KEY(course, classification)
 );
 
 CREATE TABLE MandatoryProgram(
-  FOREIGN KEY(course) REFERENCES Courses(code)
+  course TEXT,
   program TEXT,
-  PRIMARY KEY((course, program))
+  FOREIGN KEY(course) REFERENCES Courses(code),
+  PRIMARY KEY(course, program)
 );
 
 CREATE TABLE MandatoryBranch(
-  FOREIGN KEY(course) REFERENCES Courses(code)
-  FOREIGN KEY((branch, program)) REFERENCES Branches((name, program))
-  PRIMARY KEY((course, branch, progranm))
+  course TEXT,
+  branch TEXT,
+  program TEXT,
+  FOREIGN KEY(course) REFERENCES Courses(code),
+  FOREIGN KEY(branch, program) REFERENCES Branches(name, program),
+  PRIMARY KEY(course, branch, program)
+);
+
+CREATE TABLE RecommendedBranch(
+  course TEXT,
+  branch TEXT,
+  program TEXT,
+  FOREIGN KEY(course) REFERENCES Courses(code),
+  FOREIGN KEY(branch, program) REFERENCES Branches(name, program),
+  PRIMARY KEY(course, branch, program)
 );
 
 CREATE TABLE Registered(
-  FOREIGN KEY(student) REFERENCES Students(idnr)
-  FOREIGN KEY(course) REFERENCES Courses(code)
-  PRIMARY KEY((student, course))
+  student TEXT,
+  course TEXT,
+  FOREIGN KEY(student) REFERENCES Students(idnr),
+  FOREIGN KEY(course) REFERENCES Courses(code),
+  PRIMARY KEY(student, course)
 );
 
 CREATE TABLE Taken (
-  FOREIGN KEY(student) REFERENCES Students(idnr),
-  FOREIGN KEY(course) REFERENCES Courses(code)
+  student TEXT,
+  course TEXT,
   grade TEXT,
-  PRIMARY KEY((student, course))
+  FOREIGN KEY(student) REFERENCES Students(idnr),
+  FOREIGN KEY(course) REFERENCES Courses(code),
+  PRIMARY KEY(student, course)
 );
 
 CREATE TABLE WaitingList (
+  student TEXT,
+  course TEXT,
+  position INT,
   FOREIGN KEY(student) REFERENCES Students(idnr),
   FOREIGN KEY(course) REFERENCES LimitedCourses(code),
-  position INT,
   PRIMARY KEY(student, course)
 );
