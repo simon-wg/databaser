@@ -17,7 +17,7 @@ FROM FinishedCourses
 WHERE grade='3' OR grade='4' OR grade='5';
 
 CREATE VIEW UnreadMandatory AS 
-  SELECT idnr AS student, course FROM Students JOIN MandatoryProgram USING (program) LEFT JOIN Taken USING (course) WHERE NOT grade='U' AND grade IS NOT NULL
+  SELECT idnr AS student, COALESCE(MandatoryProgram.course, PassedCourses.course) AS course FROM Students JOIN MandatoryProgram USING (program) LEFT JOIN PassedCourses ON (idnr=PassedCourses.student AND MandatoryProgram.course=PassedCourses.course) WHERE PassedCourses.grade IS NULL
   UNION
-  SELECT StudentBranches.student, course FROM StudentBranches JOIN MandatoryBranch USING (program) LEFT JOIN Taken USING (course) WHERE NOT grade='U' AND grade IS NOT NULL;
-
+  SELECT StudentBranches.student, course FROM StudentBranches JOIN MandatoryBranch USING (program)
+  LEFT OUTER JOIN PassedCourses USING (student, course) WHERE PassedCourses.grade IS NULL
