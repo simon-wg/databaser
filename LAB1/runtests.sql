@@ -28,7 +28,7 @@ SELECT student, course, courseName, grade, credits FROM FinishedCourses ORDER BY
 
 SELECT student, course, status FROM Registrations ORDER BY (status, course, student);
 
--- SELECT student, totalCredits, mandatoryLeft, mathCredits, seminarCourses, qualified FROM PathToGraduation ORDER BY student;
+SELECT student, totalCredits, mandatoryLeft, mathCredits, seminarCourses, qualified FROM PathToGraduation ORDER BY student;
 
 -- Helper views for PathToGraduation (optional)
 SELECT student, course, credits FROM PassedCourses ORDER BY (student, course);
