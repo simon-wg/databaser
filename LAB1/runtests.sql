@@ -32,7 +32,7 @@ SELECT student, course, status FROM Registrations ORDER BY (status, course, stud
 
 -- Helper views for PathToGraduation (optional)
 SELECT student, course, credits FROM PassedCourses ORDER BY (student, course);
---SELECT student, course FROM UnreadMandatory ORDER BY (student, course);
+SELECT student, course FROM UnreadMandatory ORDER BY (student, course);
 --SELECT student, course, credits FROM RecommendedCourses ORDER BY (student, course);
 
 
