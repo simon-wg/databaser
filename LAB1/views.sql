@@ -11,3 +11,7 @@ CREATE VIEW Registrations AS
   UNION
   SELECT student, course, 'waiting' AS status FROM WaitingList;
 
+CREATE VIEW PassedCourses AS
+SELECT student, course, credits, grade
+FROM FinishedCourses 
+WHERE grade='3' OR grade='4' OR grade='5';
