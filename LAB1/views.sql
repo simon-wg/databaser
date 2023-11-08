@@ -20,3 +20,4 @@ CREATE VIEW UnreadMandatory AS
   SELECT idnr AS student, course FROM Students JOIN MandatoryProgram USING (program) LEFT JOIN Taken USING (course) WHERE NOT grade='U' AND grade IS NOT NULL
   UNION
   SELECT StudentBranches.student, course FROM StudentBranches JOIN MandatoryBranch USING (program) LEFT JOIN Taken USING (course) WHERE NOT grade='U' AND grade IS NOT NULL;
+
