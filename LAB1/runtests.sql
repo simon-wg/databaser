@@ -35,6 +35,51 @@ SELECT student, course, credits FROM PassedCourses ORDER BY (student, course);
 SELECT student, course FROM UnreadMandatory ORDER BY (student, course);
 --SELECT student, course FROM UnreadMandatory ORDER BY (student, course);
 --SELECT student, course, credits FROM RecommendedCourses ORDER BY (student, course);
+SELECT student, recommendedCredits FROM RecommendedPassed ORDER BY (student);
 
 
 -- Life-hack: When working on a new view you can write it as a query here (without creating a view) and when it works just add CREATE VIEW and put it in views.sql
+WITH 
+TotalCredits AS 
+  (SELECT student, 
+    SUM(credits) AS credits 
+  FROM PassedCourses 
+  GROUP BY student),
+MandatoryLeft AS 
+  (SELECT student, 
+    COUNT(course) AS mandatoryLeft 
+  FROM UnreadMandatory 
+  GROUP BY student),
+MathCredits AS 
+  (SELECT student,
+    SUM(credits) AS mathCredits
+  FROM PassedCourses JOIN Classified USING (course)
+  WHERE classification = 'math'
+  GROUP BY student),
+SeminarCourses AS 
+  (SELECT student,
+    COUNT(course) as seminarCourses
+  FROM PassedCourses JOIN Classified USING (course)
+  WHERE classification = 'seminar'
+  GROUP BY student),
+Qualified AS 
+  (SELECT student,
+    (0 = 0) AS qualified
+  FROM MandatoryLeft)
+
+SELECT 
+  idnr AS student, 
+  COALESCE(credits, 0) AS credits, 
+  COALESCE(mandatoryLeft, 0) AS mandatoryLeft,
+  COALESCE(mathCredits, 0) AS mathCredits,
+  COALESCE(seminarCourses, 0) AS seminarCourses,
+  qualified
+FROM Students 
+LEFT JOIN TotalCredits ON (idnr = TotalCredits.student) 
+LEFT JOIN MandatoryLeft ON (idnr = MandatoryLeft.student) 
+LEFT JOIN MathCredits ON (idnr = MathCredits.student)
+LEFT JOIN SeminarCourses ON (idnr = SeminarCourses.student)
+LEFT JOIN RecommendedPassed ON (idnr = RecommendedPassed.student)
+LEFT JOIN Qualified ON (idnr = Qualified.student)
+GROUP BY idnr, credits, mandatoryLeft, mathCredits, seminarCourses, recommendedCredits, qualified
+ORDER BY student;
