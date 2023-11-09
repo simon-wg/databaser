@@ -35,7 +35,7 @@ SELECT student, course, credits FROM PassedCourses ORDER BY (student, course);
 SELECT student, course FROM UnreadMandatory ORDER BY (student, course);
 --SELECT student, course FROM UnreadMandatory ORDER BY (student, course);
 --SELECT student, course, credits FROM RecommendedCourses ORDER BY (student, course);
-SELECT student, recommendedCredits FROM RecommendedPassed ORDER BY (student);
+SELECT student, branch, recommendedCredits FROM RecommendedPassed ORDER BY (student);
 
 
 -- Life-hack: When working on a new view you can write it as a query here (without creating a view) and when it works just add CREATE VIEW and put it in views.sql
@@ -63,9 +63,17 @@ SeminarCourses AS
   WHERE classification = 'seminar'
   GROUP BY student),
 Qualified AS 
-  (SELECT student,
-    (0 = 0) AS qualified
-  FROM MandatoryLeft)
+  (SELECT idnr AS student,
+    (COALESCE(mandatoryLeft, 0) = 0 
+    AND COALESCE(recommendedCredits, 0) >= 10
+    AND COALESCE(mathCredits, 0) >= 20
+    AND COALESCE(seminarCourses, 0) >= 1)
+    AS qualified
+  FROM Students 
+  LEFT JOIN MandatoryLeft ON (idnr = MandatoryLeft.student)
+  LEFT JOIN RecommendedPassed ON (idnr = RecommendedPassed.student)
+  LEFT JOIN MathCredits ON (idnr = MathCredits.student)
+  LEFT JOIN SeminarCourses ON (idnr = SeminarCourses.student))
 
 SELECT 
   idnr AS student, 

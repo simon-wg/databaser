@@ -17,10 +17,12 @@ FROM FinishedCourses
 WHERE grade='3' OR grade='4' OR grade='5';
 
 CREATE VIEW RecommendedPassed AS
-SELECT student, SUM(credits) AS recommendedCredits
+SELECT student, StudentBranches.branch AS branch, SUM(credits) AS recommendedCredits
 FROM PassedCourses 
+LEFT JOIN StudentBranches USING (student)
 JOIN RecommendedBranch USING (course)
-GROUP BY student;
+WHERE StudentBranches.branch = RecommendedBranch.branch
+GROUP BY student, StudentBranches.branch;
 
 CREATE VIEW UnreadMandatory AS 
   SELECT idnr AS student, COALESCE(MandatoryProgram.course, PassedCourses.course) AS course FROM Students JOIN MandatoryProgram USING (program) LEFT JOIN PassedCourses ON (idnr=PassedCourses.student AND MandatoryProgram.course=PassedCourses.course) WHERE PassedCourses.grade IS NULL
