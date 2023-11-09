@@ -21,12 +21,12 @@ SELECT student, StudentBranches.branch AS branch, SUM(credits) AS recommendedCre
 FROM PassedCourses 
 LEFT JOIN StudentBranches USING (student)
 JOIN RecommendedBranch USING (course)
-WHERE StudentBranches.branch = RecommendedBranch.branch
+WHERE StudentBranches.branch = RecommendedBranch.branch AND StudentBranches.program = RecommendedBranch.program
 GROUP BY student, StudentBranches.branch;
 
 CREATE VIEW UnreadMandatory AS 
   SELECT idnr AS student, COALESCE(MandatoryProgram.course, PassedCourses.course) AS course FROM Students JOIN MandatoryProgram USING (program) LEFT JOIN PassedCourses ON (idnr=PassedCourses.student AND MandatoryProgram.course=PassedCourses.course) WHERE PassedCourses.grade IS NULL
   UNION
   SELECT StudentBranches.student, course FROM StudentBranches JOIN MandatoryBranch USING (program)
-  LEFT OUTER JOIN PassedCourses USING (student, course) WHERE PassedCourses.grade IS NULL;
+  LEFT OUTER JOIN PassedCourses USING (student, course) WHERE PassedCourses.grade IS NULL AND MandatoryBranch.program = StudentBranches.program;
 
