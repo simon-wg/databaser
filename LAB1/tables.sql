@@ -6,7 +6,7 @@ CREATE TABLE Students(
 );
 
 CREATE TABLE Branches(
-  name TEXT,
+  name TEXT NOT NULL,
   program TEXT,
   PRIMARY KEY(name, program)
 );
@@ -26,8 +26,8 @@ CREATE TABLE LimitedCourses(
 
 CREATE TABLE StudentBranches(
   student TEXT PRIMARY KEY,
-  branch TEXT,
-  program TEXT,
+  branch TEXT NOT NULL,
+  program TEXT NOT NULL,
   FOREIGN KEY(student) REFERENCES Students(idnr),
   FOREIGN KEY(branch, program) REFERENCES Branches(name, program)
 );
@@ -39,13 +39,14 @@ CREATE TABLE Classifications(
 CREATE TABLE Classified (
   course TEXT,
   classification TEXT,
+  FOREIGN KEY(course) REFERENCES Courses(code),
   FOREIGN KEY(classification) REFERENCES Classifications(name),
   PRIMARY KEY(course, classification)
 );
 
 CREATE TABLE MandatoryProgram(
   course TEXT,
-  program TEXT,
+  program TEXT NOT NULL,
   FOREIGN KEY(course) REFERENCES Courses(code),
   PRIMARY KEY(course, program)
 );
@@ -89,7 +90,7 @@ CREATE TABLE Taken (
 CREATE TABLE WaitingList (
   student TEXT,
   course TEXT,
-  position INT,
+  position INT NOT NULL,
   FOREIGN KEY(student) REFERENCES Students(idnr),
   FOREIGN KEY(course) REFERENCES LimitedCourses(code),
   PRIMARY KEY(student, course)

@@ -31,7 +31,7 @@ CREATE VIEW UnreadMandatory AS
   LEFT JOIN PassedCourses USING (student, course) WHERE PassedCourses.grade IS NULL AND MandatoryBranch.program = StudentBranches.program;
 
 CREATE VIEW PathToGraduation AS
-WITH
+WITH 
 TotalCredits AS 
   (SELECT student, 
     SUM(credits) AS credits 
@@ -69,7 +69,7 @@ Qualified AS
 
 SELECT 
   idnr AS student, 
-  COALESCE(credits, 0) AS credits, 
+  COALESCE(credits, 0) AS totalCredits, 
   COALESCE(mandatoryLeft, 0) AS mandatoryLeft,
   COALESCE(mathCredits, 0) AS mathCredits,
   COALESCE(seminarCourses, 0) AS seminarCourses,
