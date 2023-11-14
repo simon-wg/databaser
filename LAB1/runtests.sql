@@ -39,7 +39,7 @@ SELECT student, branch, recommendedCredits FROM RecommendedPassed ORDER BY (stud
 
 
 -- Life-hack: When working on a new view you can write it as a query here (without creating a view) and when it works just add CREATE VIEW and put it in views.sql
-WITH 
+/*WITH 
 TotalCredits AS 
   (SELECT student, 
     SUM(credits) AS credits 
@@ -90,4 +90,4 @@ LEFT JOIN SeminarCourses ON (idnr = SeminarCourses.student)
 LEFT JOIN RecommendedPassed ON (idnr = RecommendedPassed.student)
 FULL OUTER JOIN Qualified ON (idnr = Qualified.student)
 GROUP BY idnr, credits, mandatoryLeft, mathCredits, seminarCourses, recommendedCredits, qualified
-ORDER BY student;
+ORDER BY student;*/
