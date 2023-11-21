@@ -38,3 +38,8 @@ SELECT student, branch, recommendedCredits FROM RecommendedPassed ORDER BY (stud
 SELECT student, totalCredits, mandatoryLeft, mathCredits, seminarCourses, qualified FROM PathToGraduation ORDER BY student;
 
 -- Life-hack: When working on a new view you can write it as a query here (without creating a view) and when it works just add CREATE VIEW and put it in views.sql
+
+SELECT idnr AS student, MandatoryProgram.course FROM Students LEFT JOIN MandatoryProgram ON (Students.program = MandatoryProgram.program) LEFT JOIN PassedCourses ON (idnr = PassedCourses.student) WHERE (PassedCourses.grade IS NULL AND MandatoryProgram.course IS NOT NULL)
+UNION
+SELECT idnr AS student, MandatoryBranch.course FROM Students LEFT JOIN StudentBranches ON (Students.idnr = StudentBranches.student) LEFT JOIN MandatoryBranch ON (Students.program = MandatoryBranch.program AND StudentBranches.branch = MandatoryBranch.branch) LEFT JOIN PassedCourses ON (idnr = PassedCourses.student) WHERE (PassedCourses.grade IS NULL)
+ORDER BY student;

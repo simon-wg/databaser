@@ -25,9 +25,17 @@ WHERE StudentBranches.branch = RecommendedBranch.branch AND StudentBranches.prog
 GROUP BY student, StudentBranches.branch;
 
 CREATE VIEW UnreadMandatory AS 
-SELECT idnr AS student, MandatoryProgram.course FROM Students LEFT JOIN MandatoryProgram ON (Students.program = MandatoryProgram.program) LEFT JOIN PassedCourses ON (idnr = PassedCourses.student) WHERE (PassedCourses.grade IS NULL AND MandatoryProgram.course IS NOT NULL)
+SELECT idnr AS student, MandatoryProgram.course 
+FROM Students 
+  LEFT JOIN MandatoryProgram ON (Students.program = MandatoryProgram.program) 
+  LEFT JOIN PassedCourses ON (idnr = PassedCourses.student AND MandatoryProgram.course = PassedCourses.course) 
+  WHERE (PassedCourses.grade IS NULL)
 UNION
-SELECT idnr AS student, MandatoryBranch.course FROM Students LEFT JOIN StudentBranches ON (Students.idnr = StudentBranches.student) LEFT JOIN MandatoryBranch ON (Students.program = MandatoryBranch.program AND StudentBranches.branch = MandatoryBranch.branch) LEFT JOIN PassedCourses ON (idnr = PassedCourses.student) WHERE (PassedCourses.grade IS NULL AND MandatoryBranch.course IS NOT NULL)
+SELECT StudentBranches.student, MandatoryBranch.course 
+FROM StudentBranches 
+  LEFT JOIN MandatoryBranch ON (StudentBranches.program = MandatoryBranch.program AND StudentBranches.branch = MandatoryBranch.branch) 
+  LEFT JOIN PassedCourses ON (StudentBranches.student = PassedCourses.student AND PassedCourses.course = MandatoryBranch.course) 
+  WHERE (PassedCourses.grade IS NULL)
 ORDER BY student;
 
 CREATE VIEW PathToGraduation AS
