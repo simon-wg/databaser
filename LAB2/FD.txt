@@ -4,8 +4,7 @@ studentIdnr -> studentName
 studentIdnr -> login
 studentIdnr -> programName
 studentIdnr -> branchName
-
-programName -> programAbbreviation
+studentIdnr -> programAbbreviation
 
 departmentName -> departmentAbbreviation
 
@@ -13,10 +12,22 @@ departmentName ->> courseCode
 courseCode -> courseName
 courseCode -> credits
 courseCode -> classification
-courseCode -> departmentName
 courseCode -> capacity
 
-departmentName ->> programName
+departmentName -> programName
 
 studentIdnr, departmentName ->> position
 studentIdnr, departmentName ->> grade
+
+R(studentIdnr, studentName, login, programName, branchName)
+studentIdnr -> {studentName, login, programName, programAbbreviation, branchName}
+
+R(departmentName, departmentAbbreviation, courseCode, programName)
+departmentName -> {courseCode, departmentAbbreviation, programName}
+
+R(courseCode, courseName, credits, classification, capacity)
+courseCode -> {courseName, credits, classification, capacity}
+
+R(studentIdnr, courseCode, position, grade)
+studentIdnr, courseCode -> {position, grade}
+
