@@ -1,31 +1,47 @@
 CREATE TABLE Students(
   idnr TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  login TEXT NOT NULL UNIQUE,
+  login TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE Programs(
   name TEXT PRIMARY KEY,
-  abbreviation TEXT NOT NULL,
+  abbreviation TEXT NOT NULL
+);
+
+CREATE TABLE StudentPrograms(
+  student TEXT NOT NULL,
+  program TEXT NOT NULL,
+  FOREIGN KEY(student) REFERENCES Students(idnr),
+  FOREIGN KEY(program) REFERENCES Programs(name),
+  PRIMARY KEY(student, program)
 );
 
 CREATE TABLE Departments(
   name TEXT PRIMARY KEY,
-  abbreviation TEXT NOT NULL UNIQUE,
+  abbreviation TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE Branches(
   name TEXT NOT NULL,
   program TEXT NOT NULL,
   FOREIGN KEY(program) REFERENCES Programs(name),
-  PRIMARY KEY(name, program),
+  PRIMARY KEY(name, program)
+);
+
+CREATE TABLE StudentBranches(
+  student TEXT NOT NULL,
+  branch TEXT NOT NULL,
+  program TEXT NOT NULL,
+  FOREIGN KEY(student) REFERENCES Students(idnr),
+  PRIMARY KEY (student)
 );
 
 CREATE TABLE Courses(
   code TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   credits NUMERIC NOT NULL,
-  department TEXT NOT NULL
+  department TEXT NOT NULL,
   FOREIGN KEY(department) REFERENCES Departments(name)
 );
 
@@ -33,15 +49,6 @@ CREATE TABLE LimitedCourses(
   code TEXT PRIMARY KEY,
   capacity INT NOT NULL,
   FOREIGN KEY(code) REFERENCES Courses(code)
-);
-
-CREATE TABLE StudentBranchPrograms(
-  student TEXT PRIMARY KEY,
-  branch TEXT NOT NULL,
-  program TEXT NOT NULL,
-  FOREIGN KEY(student) REFERENCES Students(idnr),
-  FOREIGN KEY(branch) REFERENCES Branches(name),
-  FOREIGN KEY(program) REFERENCES Programs(name),
 );
 
 CREATE TABLE Classifications(
@@ -69,6 +76,7 @@ CREATE TABLE MandatoryBranch(
   program TEXT,
   FOREIGN KEY(course) REFERENCES Courses(code),
   FOREIGN KEY(branch, program) REFERENCES Branches(name, program),
+  FOREIGN KEY(program) REFERENCES Programs(name),
   PRIMARY KEY(course, branch, program)
 );
 
@@ -77,6 +85,7 @@ CREATE TABLE RecommendedBranch(
   branch TEXT,
   program TEXT,
   FOREIGN KEY(course) REFERENCES Courses(code),
+  FOREIGN KEY(program) REFERENCES Programs(name),
   FOREIGN KEY(branch, program) REFERENCES Branches(name, program),
   PRIMARY KEY(course, branch, program)
 );
