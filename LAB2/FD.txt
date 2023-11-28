@@ -47,7 +47,8 @@ branchName ->> studentIdnr
 
 This allows us to break R4 and R6 into smaller relationships
 Student(studentIdnr, studentName, login)
-studentIdnr -> studentName, login
+studentIdnr -> studentName
+studentIdnr -> login
 
 StudentProgram(studentIdnr, programName)
 studentIdnr -> programName
@@ -63,12 +64,15 @@ departmentName -> departmentAbbreviation
 departmentAbbreviation -> departmentName
 
 Course(courseCode, courseName, credits, capacity)
-courseCode -> courseName, credits, capacity
+courseCode -> courseName
+courseCode -> credits
+courseCode -> capacity
 
 DepartmentCourses(courseCode, departmentName)
 
 StudentCourseInformation(courseCode, studentIdnr, position, grade)
-courseCode, studentIdnr -> position, grade
+courseCode, studentIdnr -> position
+courseCode, studentIdnr -> grade
 
 StudentCourses(studentIdnr, courseCode)
 
