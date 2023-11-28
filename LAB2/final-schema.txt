@@ -1,0 +1,34 @@
+
+Programs(name, abbreviation)
+
+Students(idnr, name, login)
+login unique
+
+StudentPrograms(student, program)
+students-> Students.idnr
+program-> Programs.name
+
+
+StudentBranches(student, branch)
+Student -> Students.idnr
+
+Departments(name, abbreviation)
+abbreviation unique
+
+Courses(code, name, credits, capacity)
+
+DepartmentCourses(code, department)
+code -> Courses.code
+department-> Departments.name
+
+StudentCourseInformation(student, course, position, grade)
+student-> Students.idnr
+course-> Courses.code
+Grade ∈ {U, 3, 4, 5}
+
+StudentCourses(student, course)
+student-> Students.idnr
+course-> Courses.code
+
+Classification(course, classification)
+course-> Courses.code
