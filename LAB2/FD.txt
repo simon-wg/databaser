@@ -1,33 +1,75 @@
 D(studentIdnr, studentName, login, branchName, programName, programAbbreviation, courseCode, courseName, credits, departmentName, departmentAbbreviation, capacity, classification, grade, position)
 
-studentIdnr -> studentName
-studentIdnr -> login
-studentIdnr -> programName
-studentIdnr -> branchName
-studentIdnr -> programAbbreviation
+1NF:
+studentIdnr -> studentName, login, programName, branchName
+
+login -> studentIdnr
+
+programName -> programAbbreviation
 
 departmentName -> departmentAbbreviation
 
-departmentName ->> courseCode
-courseCode -> courseName
-courseCode -> credits
-courseCode -> classification
-courseCode -> capacity
+departmentAbbreviation -> departmentName
 
-departmentName -> programName
+courseCode -> courseName, credits, departmentName, capacity
 
-studentIdnr, departmentName ->> position
-studentIdnr, departmentName ->> grade
+courseCode, studentIdnr -> position, grade
 
-R(studentIdnr, studentName, login, programName, branchName)
-studentIdnr -> {studentName, login, programName, programAbbreviation, branchName}
+position, courseCode -> studentIdnr
 
-R(departmentName, departmentAbbreviation, courseCode, programName)
-departmentName -> {courseCode, departmentAbbreviation, programName}
+BCNF:
+Our D breaks the rule of LHS always being a Superkey.
+Therefore we break it down into relationships.
+R1(studentIdnr, studentName, login, programName, branchName)
+studentIdnr -> studentName, login, programName, branchName
 
-R(courseCode, courseName, credits, classification, capacity)
-courseCode -> {courseName, credits, classification, capacity}
+R2(programName, programAbbreviation)
+programName -> programAbbreviation
 
-R(studentIdnr, courseCode, position, grade)
-studentIdnr, courseCode -> {position, grade}
+R3(departmentName, departmentAbbreviation)
+departmentName -> departmentAbbreviation
+departmentAbbreviation -> departmentName
 
+R4(courseCode, courseName, credits, departmentName, capacity)
+courseCode -> courseName, credits, departmentName, capacity
+
+R5(courseCode, studentIdnr, position, grade)
+courseCode, studentIdnr -> position, grade
+
+R6(studentIdnr, courseCode, classification)
+
+4NF:
+We find the MVDs:
+courseCode ->> classification
+courseCode ->> departmentName
+programName ->> studentIdnr
+branchName ->> studentIdnr
+
+This allows us to break R4 and R6 into smaller relationships
+Student(studentIdnr, studentName, login)
+studentIdnr -> studentName, login
+
+StudentProgram(studentIdnr, programName)
+studentIdnr -> programName
+
+StudentBranch(studentIdnr, branchName)
+studentIdnr -> branchName
+
+Program(programName, programAbbreviation)
+programName -> programAbbreviation
+
+Department(departmentName, departmentAbbreviation)
+departmentName -> departmentAbbreviation
+departmentAbbreviation -> departmentName
+
+Course(courseCode, courseName, credits, capacity)
+courseCode -> courseName, credits, capacity
+
+DepartmentCourses(courseCode, departmentName)
+
+StudentCourseInformation(courseCode, studentIdnr, position, grade)
+courseCode, studentIdnr -> position, grade
+
+StudentCourses(studentIdnr, courseCode)
+
+CourseClassifications(courseCode, classification)
