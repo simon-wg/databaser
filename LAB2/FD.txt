@@ -74,6 +74,6 @@ StudentCourseInformation(courseCode, studentIdnr, position, grade)
 courseCode, studentIdnr -> position
 courseCode, studentIdnr -> grade
 
-StudentCourses(studentIdnr, courseCode)
+Registered(studentIdnr, courseCode)
 
 CourseClassifications(courseCode, classification)

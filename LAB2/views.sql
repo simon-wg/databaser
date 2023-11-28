@@ -20,22 +20,22 @@ CREATE VIEW RecommendedPassed AS
 SELECT student, StudentBranches.branch AS branch, SUM(credits) AS recommendedCredits
 FROM PassedCourses 
 LEFT JOIN StudentBranches USING (student)
-JOIN RecommendedBranch USING (course)
-WHERE StudentBranches.branch = RecommendedBranch.branch AND StudentBranches.program = RecommendedBranch.program
+JOIN Recommended USING (course)
+WHERE StudentBranches.branch = Recommended.branch AND StudentBranches.program = Recommended.program
 GROUP BY student, StudentBranches.branch;
 
 CREATE VIEW UnreadMandatory AS 
-SELECT idnr AS student, MandatoryProgram.course 
+SELECT idnr AS student, ProgramMandatory.course 
 FROM Students 
   LEFT JOIN StudentPrograms ON (idnr = student)
-  LEFT JOIN MandatoryProgram ON (StudentPrograms.program = MandatoryProgram.program) 
-  LEFT JOIN PassedCourses ON (idnr = PassedCourses.student AND MandatoryProgram.course = PassedCourses.course) 
+  LEFT JOIN ProgramMandatory ON (StudentPrograms.program = ProgramMandatory.program) 
+  LEFT JOIN PassedCourses ON (idnr = PassedCourses.student AND ProgramMandatory.course = PassedCourses.course) 
   WHERE (PassedCourses.grade IS NULL)
 UNION
-SELECT StudentBranches.student, MandatoryBranch.course 
+SELECT StudentBranches.student, BranchMandatory.course 
 FROM StudentBranches 
-  LEFT JOIN MandatoryBranch ON (StudentBranches.program = MandatoryBranch.program AND StudentBranches.branch = MandatoryBranch.branch) 
-  LEFT JOIN PassedCourses ON (StudentBranches.student = PassedCourses.student AND PassedCourses.course = MandatoryBranch.course) 
+  LEFT JOIN BranchMandatory ON (StudentBranches.program = BranchMandatory.program AND StudentBranches.branch = BranchMandatory.branch) 
+  LEFT JOIN PassedCourses ON (StudentBranches.student = PassedCourses.student AND PassedCourses.course = BranchMandatory.course) 
   WHERE (PassedCourses.grade IS NULL)
 ORDER BY student;
 

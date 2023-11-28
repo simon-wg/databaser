@@ -26,11 +26,17 @@ INSERT INTO StudentBranches VALUES ('3333333333','B1', 'Prog2');
 INSERT INTO StudentBranches VALUES ('4444444444','B1', 'Prog1');
 INSERT INTO StudentBranches VALUES ('5555555555','B1', 'Prog2');
 
-INSERT INTO Courses VALUES ('CCC111','C1',22.5,'Dep1');
-INSERT INTO Courses VALUES ('CCC222','C2',20,'Dep1');
-INSERT INTO Courses VALUES ('CCC333','C3',30,'Dep1');
-INSERT INTO Courses VALUES ('CCC444','C4',60,'Dep1');
-INSERT INTO Courses VALUES ('CCC555','C5',50,'Dep1');
+INSERT INTO Courses VALUES ('CCC111','C1',22.5);
+INSERT INTO Courses VALUES ('CCC222','C2',20);
+INSERT INTO Courses VALUES ('CCC333','C3',30);
+INSERT INTO Courses VALUES ('CCC444','C4',60);
+INSERT INTO Courses VALUES ('CCC555','C5',50);
+
+INSERT INTO DepartmentCourses VALUES ('CCC111', 'Dep1');
+INSERT INTO DepartmentCourses VALUES ('CCC222', 'Dep1');
+INSERT INTO DepartmentCourses VALUES ('CCC333', 'Dep1');
+INSERT INTO DepartmentCourses VALUES ('CCC444', 'Dep1');
+INSERT INTO DepartmentCourses VALUES ('CCC555', 'Dep1');
 
 INSERT INTO LimitedCourses VALUES ('CCC222',1);
 INSERT INTO LimitedCourses VALUES ('CCC333',2);
@@ -45,13 +51,13 @@ INSERT INTO ClassifiedCourses VALUES ('CCC444','research');
 INSERT INTO ClassifiedCourses VALUES ('CCC444','seminar');
 
 
-INSERT INTO MandatoryProgram VALUES ('CCC111','Prog1');
+INSERT INTO ProgramMandatory VALUES ('CCC111','Prog1');
 
-INSERT INTO MandatoryBranch VALUES ('CCC333', 'B1', 'Prog1');
-INSERT INTO MandatoryBranch VALUES ('CCC444', 'B1', 'Prog2');
+INSERT INTO BranchMandatory VALUES ('CCC333', 'B1', 'Prog1');
+INSERT INTO BranchMandatory VALUES ('CCC444', 'B1', 'Prog2');
 
-INSERT INTO RecommendedBranch VALUES ('CCC222', 'B1', 'Prog1');
-INSERT INTO RecommendedBranch VALUES ('CCC333', 'B1', 'Prog2');
+INSERT INTO Recommended VALUES ('CCC222', 'B1', 'Prog1');
+INSERT INTO Recommended VALUES ('CCC333', 'B1', 'Prog2');
 
 INSERT INTO Registered VALUES ('1111111111','CCC111');
 INSERT INTO Registered VALUES ('1111111111','CCC222');
