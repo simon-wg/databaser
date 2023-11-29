@@ -41,3 +41,4 @@ SELECT student, totalCredits, mandatoryLeft, mathCredits, seminarCourses, qualif
 -- Life-hack: When working on a new view you can write it as a query here (without creating a view) and when it works just add CREATE VIEW and put it in views.sql
 
 SELECT student, course, position FROM WaitingList ORDER BY (course, position);
+SELECT * FROM Prerequisites;

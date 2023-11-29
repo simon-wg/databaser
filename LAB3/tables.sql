@@ -122,3 +122,10 @@ CREATE TABLE Taken (
   CHECK ( grade IN ('U', '3', '4', '5') )
 );
 
+CREATE TABLE Prerequisites (
+  course TEXT,
+  required_course TEXT,
+  FOREIGN KEY(course) REFERENCES Courses(code),
+  FOREIGN KEY(required_course) REFERENCES Courses(code),
+  PRIMARY KEY (course,required_course)
+);
