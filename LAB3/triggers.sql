@@ -4,8 +4,10 @@ BEGIN
     RAISE EXCEPTION 'Student already registered or waiting.';
   END IF;
   -- CHECK IF STUDENT IS ALLOWED TO REGISTER FOR A COURSE :)
-  IF (NOT EXISTS (SELECT * FROM Prerequisites JOIN Taken ON (required_course = Taken.course) WHERE (Prerequisites.course = NEW.course  AND student = NEW.student))) THEN
-    RAISE EXCEPTION 'Student has not taken the right courses';
+  IF (EXISTS (SELECT * FROM Prerequisites WHERE Prerequisites.course = NEW.course)) THEN
+    IF (NOT EXISTS (SELECT * FROM Prerequisites JOIN PassedCourses ON (required_course = PassedCourses.course) WHERE (Prerequisites.course = NEW.course  AND student = NEW.student))) THEN
+      RAISE EXCEPTION 'Student has not taken the right courses';
+    END IF;
   END IF;
   IF ((SELECT capacity FROM LimitedCourses WHERE code = NEW.course) <= (SELECT COUNT(*) FROM Registrations WHERE course = NEW.course)) THEN
     INSERT INTO WaitingList VALUES(NEW.student, NEW.course, 1);
@@ -22,8 +24,10 @@ BEGIN
   IF (EXISTS (SELECT * FROM Registrations WHERE student = NEW.student AND course = NEW.course)) THEN
     RAISE EXCEPTION 'Student already registered or waiting.';
   END IF;
-  IF (NOT EXISTS (SELECT * FROM Prerequisites JOIN Taken ON (required_course = Taken.course) WHERE (Prerequisites.course = NEW.course  AND student = NEW.student))) THEN
-    RAISE EXCEPTION 'Student has not taken the right courses';
+  IF (EXISTS (SELECT * FROM Prerequisites WHERE Prerequisites.course = NEW.course)) THEN
+    IF (NOT EXISTS (SELECT * FROM Prerequisites JOIN PassedCourses ON (required_course = PassedCourses.course) WHERE (Prerequisites.course = NEW.course  AND student = NEW.student))) THEN
+      RAISE EXCEPTION 'Student has not taken the right courses';
+    END IF;
   END IF;
   SELECT COUNT(*)+1 INTO NEW.position FROM WaitingList WHERE course = NEW.course;
   RETURN NEW;
