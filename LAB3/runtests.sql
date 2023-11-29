@@ -42,3 +42,6 @@ SELECT student, totalCredits, mandatoryLeft, mathCredits, seminarCourses, qualif
 
 SELECT student, course, position FROM WaitingList ORDER BY (course, position);
 SELECT * FROM Prerequisites;
+
+SELECT * FROM Registrations WHERE student = '3333333333' AND course = 'CCC444';
+SELECT * FROM Prerequisites JOIN Taken ON (required_course = Taken.course) WHERE (Prerequisites.course = 'CCC444'  AND student = '3333333333');
