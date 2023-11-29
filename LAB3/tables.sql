@@ -108,6 +108,7 @@ CREATE TABLE WaitingList (
   position INT NOT NULL,
   FOREIGN KEY(student) REFERENCES Students(idnr),
   FOREIGN KEY(course) REFERENCES LimitedCourses(code),
+  UNIQUE (course, position),
   PRIMARY KEY (student, course)
 );
 
