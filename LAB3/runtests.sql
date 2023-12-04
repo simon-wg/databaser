@@ -42,4 +42,3 @@ SELECT student, totalCredits, mandatoryLeft, mathCredits, seminarCourses, qualif
 
 SELECT * FROM Prerequisites;
 SELECT * FROM PassedCourses;
-SELECT * FROM Prerequisites RIGHT JOIN PassedCourses ON (Prerequisites.required_course = PassedCourses.course) WHERE Prerequisites.course = 'CCC444' AND student = '3333333333'
