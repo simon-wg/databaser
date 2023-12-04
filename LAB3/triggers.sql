@@ -158,10 +158,14 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE FUNCTION compact_on_registered_delete() RETURNS trigger AS $$
+DECLARE student_var TEXT;
+DECLARE course_var TEXT;
+
 BEGIN
+  SELECT student, course INTO student_var, course_var FROM WaitingList WHERE course = OLD.course ORDER BY position LIMIT 1;
   IF (SELECT COUNT(*) FROM Registered WHERE course = OLD.course) < (SELECT capacity FROM LimitedCourses WHERE code = OLD.course) THEN
-    INSERT INTO Registered SELECT student, course FROM WaitingList WHERE course = OLD.course ORDER BY position; 
     DELETE FROM WaitingList WHERE course = OLD.course AND position = 1;
+    INSERT INTO Registered VALUES (student_var, course_var);
   END IF;
   RETURN OLD;
 END;
@@ -177,7 +181,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER on_register BEFORE INSERT ON Registered FOR ROW EXECUTE PROCEDURE on_register ();
 
-CREATe TRIGGER on_register_delete AFTER DELETE ON Registered FOR EACH ROW EXECUTE PROCEDURE compact_on_registered_delete ();
+CREATE TRIGGER on_register_delete AFTER DELETE ON Registered FOR EACH ROW EXECUTE PROCEDURE compact_on_registered_delete ();
 
 CREATE TRIGGER on_waitinglist_insert BEFORE INSERT ON WaitingList FOR ROW EXECUTE PROCEDURE on_waitinglist_insert ();
 
