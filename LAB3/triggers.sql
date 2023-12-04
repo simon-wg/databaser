@@ -1,6 +1,6 @@
 CREATE FUNCTION on_register() RETURNS trigger AS $$
 BEGIN
---Checks if studnet is already in registration or watinglist and throws an exception
+--Checks if student is already in registration or watinglist and throws an exception
 IF (
   EXISTS (
     SELECT
@@ -112,7 +112,7 @@ BEGIN IF (
     SELECT
       *
     FROM
-      Registrations
+      WaitingList
     WHERE
       student = NEW.student
       AND course = NEW.course
@@ -157,13 +157,18 @@ RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION compact() RETURNS trigger AS $$
+CREATE FUNCTION compact_on_registered_delete() RETURNS trigger AS $$
 BEGIN
   IF (SELECT COUNT(*) FROM Registered WHERE course = OLD.course) < (SELECT capacity FROM LimitedCourses WHERE code = OLD.course) THEN
-    RAISE EXCEPTION 'Course is not full';
-    INSERT INTO Registered VALUES (OLD.student, OLD.course);
-    DELETE FROM WaitingList WHERE course = OLD.course AND position = (SELECT MIN(position) FROM WaitingList WHERE course = OLD.course);
+    INSERT INTO Registered SELECT student, course FROM WaitingList WHERE course = OLD.course ORDER BY position; 
+    DELETE FROM WaitingList WHERE course = OLD.course AND position = 1;
   END IF;
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION compact_on_waitinglist_delete() RETURNS trigger AS $$
+BEGIN
   UPDATE WaitingList SET position = position - 1 WHERE position > OLD.position AND course = OLD.course;
   RETURN OLD;
 END;
@@ -172,8 +177,8 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER on_register BEFORE INSERT ON Registered FOR ROW EXECUTE PROCEDURE on_register ();
 
-CREATe TRIGGER on_register_delete AFTER DELETE ON Registered FOR EACH ROW EXECUTE PROCEDURE compact ();
+CREATe TRIGGER on_register_delete AFTER DELETE ON Registered FOR EACH ROW EXECUTE PROCEDURE compact_on_registered_delete ();
 
 CREATE TRIGGER on_waitinglist_insert BEFORE INSERT ON WaitingList FOR ROW EXECUTE PROCEDURE on_waitinglist_insert ();
 
-CREATE TRIGGER on_waitinglist_delete AFTER DELETE ON WaitingList FOR EACH ROW EXECUTE PROCEDURE compact ();
+CREATE TRIGGER on_waitinglist_delete AFTER DELETE ON WaitingList FOR EACH ROW EXECUTE PROCEDURE compact_on_waitinglist_delete ();
