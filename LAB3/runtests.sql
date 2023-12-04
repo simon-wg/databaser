@@ -40,5 +40,4 @@ SELECT student, totalCredits, mandatoryLeft, mathCredits, seminarCourses, qualif
 
 -- Life-hack: When working on a new view you can write it as a query here (without creating a view) and when it works just add CREATE VIEW and put it in views.sql
 
-SELECT * FROM Prerequisites;
-SELECT * FROM PassedCourses;
+SELECT student, course, status FROM Registrations ORDER BY (status, course, student);
