@@ -1,3 +1,5 @@
+package org.databaser;
+
 public class TestPortal {
 
    // enable this to make pretty printing a bit more compact
