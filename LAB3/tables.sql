@@ -124,8 +124,8 @@ CREATE TABLE Taken (
 
 CREATE TABLE Prerequisites (
   course TEXT,
-  required_course TEXT,
+  prerequisite TEXT,
   FOREIGN KEY(course) REFERENCES Courses(code),
-  FOREIGN KEY(required_course) REFERENCES Courses(code),
-  PRIMARY KEY (course,required_course)
+  FOREIGN KEY(prerequisite) REFERENCES Courses(code),
+  PRIMARY KEY (course,prerequisite)
 );

@@ -1,188 +1,43 @@
-CREATE FUNCTION on_register() RETURNS trigger AS $$
+CREATE FUNCTION on_registration_insert() RETURNS trigger AS $$
 BEGIN
---Checks if student is already in registration or watinglist and throws an exception
-IF (
-  EXISTS (
-    SELECT
-      *
-    FROM
-      Registrations
-    WHERE
-      student = NEW.student
-      AND course = NEW.course
-  )
-) THEN RAISE EXCEPTION 'Student already registered or waiting.';
-
-END IF;
-
--- CHECK IF STUDENT IS ALLOWED TO REGISTER FOR A COURSE :)
-IF (
-  EXISTS (
-    SELECT
-      *
-    FROM
-      Prerequisites
-    WHERE
-      Prerequisites.course = NEW.course
-  )
-) THEN
---Checks if student has passed all the courses that is in prerequisites
-IF (
-  NOT EXISTS (
-    SELECT
-      *
-    FROM
-      Prerequisites
-      JOIN PassedCourses ON (required_course = PassedCourses.course)
-    WHERE
-      (
-        Prerequisites.course = NEW.course
-        AND student = NEW.student
-      )
-  )
-) THEN RAISE EXCEPTION 'Student has not taken the right courses';
-
-END IF;
-
-END IF;
-
---If there is 
-IF (
-  (
-    SELECT
-      capacity
-    FROM
-      LimitedCourses
-    WHERE
-      code = NEW.course
-  ) <= (
-    SELECT
-      COUNT(*)
-    FROM
-      Registrations
-    WHERE
-      course = NEW.course
-  )
-) THEN
-INSERT INTO
-  WaitingList
-VALUES
-  (NEW.student, NEW.course, 1);
-
-RETURN OLD;
-
-END IF;
-
-IF NOT (
-  (
-    SELECT
-      COUNT(*)
-    FROM
-      Prerequisites
-      RIGHT JOIN PassedCourses ON (
-        Prerequisites.required_course = PassedCourses.course
-      )
-    WHERE
-      Prerequisites.course = NEW.course
-      AND student = NEW.student
-  ) = (
-    SELECT
-      COUNT(*)
-    FROM
-      Prerequisites
-    WHERE
-      Prerequisites.course = NEW.course
-  )
-) THEN RAISE EXCEPTION 'Student has not completed the required courses.';
-
-END IF;
-
-RETURN NEW;
-
-END;
-$$ LANGUAGE plpgsql;
-
-
-
-CREATE FUNCTION on_waitinglist_insert() RETURNS trigger AS $$
-DECLARE pos INT;
-
-BEGIN IF (
-  EXISTS (
-    SELECT
-      *
-    FROM
-      WaitingList
-    WHERE
-      student = NEW.student
-      AND course = NEW.course
-  )
-) THEN RAISE EXCEPTION 'Student already registered or waiting.';
-
-END IF;
-
-IF NOT (
-  (
-    SELECT
-      COUNT(*)
-    FROM
-      Prerequisites
-      RIGHT JOIN PassedCourses ON (
-        Prerequisites.required_course = PassedCourses.course
-      )
-    WHERE
-      Prerequisites.course = NEW.course
-      AND student = NEW.student
-  ) = (
-    SELECT
-      COUNT(*)
-    FROM
-      Prerequisites
-    WHERE
-      Prerequisites.course = NEW.course
-  )
-) THEN RAISE EXCEPTION 'Student has not completed the required courses.';
-
-END IF;
-
-SELECT
-  COUNT(*) + 1 INTO NEW.position
-FROM
-  WaitingList
-WHERE
-  course = NEW.course;
-
-RETURN NEW;
-
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE FUNCTION compact_on_registered_delete() RETURNS trigger AS $$
-DECLARE student_var TEXT;
-DECLARE course_var TEXT;
-
-BEGIN
-  SELECT student, course INTO student_var, course_var FROM WaitingList WHERE course = OLD.course ORDER BY position LIMIT 1;
-  IF (SELECT COUNT(*) FROM Registered WHERE course = OLD.course) < (SELECT capacity FROM LimitedCourses WHERE code = OLD.course) THEN
-    DELETE FROM WaitingList WHERE course = OLD.course AND position = 1;
-    INSERT INTO Registered VALUES (student_var, course_var);
+  -- Check if student is qualified for the course
+  IF (SELECT COUNT(*) FROM Prerequisites WHERE course = NEW.course) > 0 THEN
+    RAISE NOTICE 'Checking if student % is qualified for course %', NEW.student, NEW.course;
+    IF (SELECT COUNT(*) FROM PassedCourses JOIN Prerequisites ON PassedCourses.course = Prerequisites.prerequisite WHERE PassedCourses.student = NEW.student AND Prerequisites.course = NEW.course) < (SELECT COUNT(*) FROM Prerequisites WHERE course = NEW.course) THEN
+      RAISE EXCEPTION 'Student % is not qualified for course %', NEW.student, NEW.course;
+    END IF;
+  END IF;
+  IF (SELECT COUNT(*) FROM Registered WHERE course = NEW.course) >= (SELECT capacity FROM LimitedCourses WHERE code = NEW.course) THEN
+    INSERT INTO WaitingList VALUES (NEW.student, NEW.course, (SELECT COUNT(*) FROM WaitingList WHERE course = NEW.course));
+  ELSE
+    INSERT INTO Registered VALUES (NEW.student, NEW.course);
   END IF;
   RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION compact_on_waitinglist_delete() RETURNS trigger AS $$
+CREATE FUNCTION on_registration_delete() RETURNS trigger AS $$
 BEGIN
-  UPDATE WaitingList SET position = position - 1 WHERE position > OLD.position AND course = OLD.course;
+  IF EXISTS (SELECT * FROM WaitingList WHERE student = OLD.student AND course = OLD.course) THEN
+    DELETE FROM WaitingList WHERE student = OLD.student AND course = OLD.course;
+  ELSE
+    DELETE FROM Registered WHERE student = OLD.student AND course = OLD.course;
+    INSERT INTO Registered SELECT student, course FROM WaitingList WHERE course = OLD.course ORDER BY position ASC LIMIT 1;
+    DELETE FROM WaitingList WHERE course = OLD.course AND position = 0;
+  END IF;
   RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE FUNCTION compact_waiting_list() RETURNS trigger AS $$
+BEGIN
+  UPDATE WaitingList SET position = position - 1 WHERE course = OLD.course AND position > OLD.position;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE TRIGGER on_register BEFORE INSERT ON Registered FOR ROW EXECUTE PROCEDURE on_register ();
+CREATE TRIGGER on_registration_insert INSTEAD OF INSERT ON Registrations FOR ROW EXECUTE PROCEDURE on_registration_insert ();
 
-CREATE TRIGGER on_register_delete AFTER DELETE ON Registered FOR EACH ROW EXECUTE PROCEDURE compact_on_registered_delete ();
+CREATE TRIGGER on_registration_delete INSTEAD OF DELETE ON Registrations FOR ROW EXECUTE PROCEDURE on_registration_delete ();
 
-CREATE TRIGGER on_waitinglist_insert BEFORE INSERT ON WaitingList FOR ROW EXECUTE PROCEDURE on_waitinglist_insert ();
-
-CREATE TRIGGER on_waitinglist_delete AFTER DELETE ON WaitingList FOR EACH ROW EXECUTE PROCEDURE compact_on_waitinglist_delete ();
+CREATE TRIGGER compact_waiting_list AFTER DELETE ON WaitingList FOR EACH ROW EXECUTE PROCEDURE compact_waiting_list ();
