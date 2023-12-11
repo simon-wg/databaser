@@ -70,11 +70,15 @@ public class PortalConnection {
     public String unregister(String student, String course){
         // delete student from course
         try(PreparedStatement st = conn.prepareStatement(
-            "DELETE FROM Registrations WHERE student=? AND course=?"
+            //"DELETE FROM Registrations WHERE student=? AND course=?"
+                "DELETE FROM Registrations WHERE student=\'" + student + "\' AND course=\'" + course + "\'"
             )){
+            //CCC222' OR 'a'='a
 
+            /*
             st.setString(1, student);
             st.setString(2, course);
+            */
 
             st.executeUpdate();
 
