@@ -97,23 +97,28 @@ public class PortalConnection {
         } catch (Exception e){
             throw new SQLException("Could not read schema from resources");
         }
-        JSONObject schemaJson = new JSONObject(schema);
+        JSONObject jsonObject = new JSONObject();
+        ResultSet rs;
 
         try(PreparedStatement st = conn.prepareStatement(
             // replace this with something more useful
-            "SELECT jsonb_build_object('student',idnr,'name',name) AS jsondata FROM BasicInformation WHERE idnr=?"
+            "SELECT idnr AS student, name, login FROM BasicInformation WHERE idnr=?"
             )){
             
             st.setString(1, student);
 
-            ResultSet rs = st.executeQuery();
-            
-            if(rs.next())
-              return rs.getString("jsondata");
-            else
-              return "{\"student\":\"does not exist :(\"}"; 
-            
-        } 
+            rs = st.executeQuery();
+
+            if(rs.next()) {
+                jsonObject.put("student", rs.getString("student"));
+                jsonObject.put("name", rs.getString("name"));
+                jsonObject.put("login", rs.getString("login"));
+            }
+            else{
+                return "{\"student\":\"does not exist :(\"}";
+            }
+        }
+        return jsonObject.toString();
     }
 
     // This is a hack to turn an SQLException into a JSON string error message. No need to change.
