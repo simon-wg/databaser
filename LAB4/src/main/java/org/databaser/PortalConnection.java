@@ -1,7 +1,15 @@
 package org.databaser;
 
+import java.io.IOException;
 import java.sql.*; // JDBC stuff.
+import java.util.Objects;
 import java.util.Properties;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jackson.JsonLoader;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import com.github.fge.jsonschema.main.JsonValidator;
 import org.json.*;
 
 public class PortalConnection {
@@ -81,28 +89,12 @@ public class PortalConnection {
     public String getInfo(String student) throws SQLException{
 
         // Get the json from the schema in resources, throw an exception if it gets null
-        String pathToSchema;
-        try {
-            pathToSchema = PortalConnection.class.getResource("/information_schema.json").toString();
-        }
-        catch (NullPointerException e) {
-            throw new SQLException("Could not find schema in resources");
-        }
-        // Remove the "file:" part of the path
-        pathToSchema = pathToSchema.substring(5);
-        // Read the schema from the file
-        String schema;
-        try{
-            schema = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(pathToSchema)));
-        } catch (Exception e){
-            throw new SQLException("Could not read schema from resources");
-        }
         JSONObject jsonObject = new JSONObject();
         ResultSet rs;
 
         try(PreparedStatement st = conn.prepareStatement(
             // replace this with something more useful
-            "SELECT idnr AS student, name, login FROM BasicInformation WHERE idnr=?"
+            "SELECT idnr AS student, name, login, program, branch FROM BasicInformation WHERE idnr=?"
             )){
             
             st.setString(1, student);
@@ -113,10 +105,88 @@ public class PortalConnection {
                 jsonObject.put("student", rs.getString("student"));
                 jsonObject.put("name", rs.getString("name"));
                 jsonObject.put("login", rs.getString("login"));
+                jsonObject.put("program", rs.getString("program"));
+                jsonObject.put("branch", rs.getString("branch"));
             }
             else{
                 return "{\"student\":\"does not exist :(\"}";
             }
+        }
+        try(PreparedStatement st = conn.prepareStatement(
+            "SELECT coursename, course, credits, grade FROM FinishedCourses WHERE student=?"
+            )){
+
+            st.setString(1, student);
+
+            rs = st.executeQuery();
+
+            while(rs.next()) {
+                JSONObject course = new JSONObject();
+                course.put("course", rs.getString("coursename"));
+                course.put("code", rs.getString("course"));
+                course.put("credits", rs.getFloat("credits"));
+                course.put("grade", rs.getString("grade"));
+                jsonObject.accumulate("finished", course);
+            }
+        }
+        try(PreparedStatement st = conn.prepareStatement(
+            "SELECT Courses.name, Registrations.course, status FROM Registrations LEFT JOIN Courses ON (Courses.code = Registrations.course) WHERE student=?"
+            )){
+
+            st.setString(1, student);
+
+            rs = st.executeQuery();
+
+            while(rs.next()) {
+                JSONObject course = new JSONObject();
+                course.put("course", rs.getString("name"));
+                course.put("code", rs.getString("course"));
+                course.put("status", rs.getString("status"));
+                jsonObject.append("registered", course);
+            }
+        }
+        try (PreparedStatement st = conn.prepareStatement(
+                "SELECT seminarcourses, mathcredits, totalcredits, qualified From PathToGraduation WHERE student=?"
+            )){
+
+            st.setString(1, student);
+
+            rs = st.executeQuery();
+
+            if (rs.next()) {
+                jsonObject.put("seminarCourses", rs.getInt("seminarcourses"));
+                jsonObject.put("mathCredits", rs.getFloat("mathcredits"));
+                jsonObject.put("totalCredits", rs.getFloat("totalcredits"));
+                jsonObject.put("canGraduate", rs.getBoolean("qualified"));
+            }
+            else {
+                jsonObject.put("seminarCourses", 0);
+                jsonObject.put("mathCredits", 0);
+                jsonObject.put("totalCredits", 0);
+                jsonObject.put("canGraduate", false);
+            }
+        }
+        try {
+            // Validate the json against the schema
+            // If it fails, it will throw a JSONException
+            // If it succeeds, it will return the json string
+
+            JsonValidator validator = JsonSchemaFactory.byDefault().getValidator();
+            JsonNode schema;
+            try {
+                schema = JsonLoader.fromPath("src/main/resources/information_schema.json");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            JsonNode validation;
+            try {
+                validation = JsonLoader.fromString(jsonObject.toString());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            validator.validate(schema, validation);
+        } catch (ProcessingException e) {
+            throw new RuntimeException(e);
         }
         return jsonObject.toString();
     }

@@ -13,7 +13,7 @@ import com.sun.net.httpserver.HttpServer;
 
 public class PortalServer {
     
-    public static final int PORT = 80;
+    public static final int PORT = 8080;
 
     public static void main(String[] args) throws Exception {
         PortalServer s = new PortalServer();
@@ -21,8 +21,8 @@ public class PortalServer {
         System.out.println("server is running on port "+PORT);
     }
 
-    private PortalConnection conn;
-    private HttpServer server;
+    private final PortalConnection conn;
+    private final HttpServer server;
     
     public PortalServer() throws Exception {
         this.server = HttpServer.create(new InetSocketAddress(PORT), 0);
