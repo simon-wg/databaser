@@ -2,6 +2,7 @@ package org.databaser;
 
 import java.sql.*; // JDBC stuff.
 import java.util.Properties;
+import org.json.*;
 
 public class PortalConnection {
 
@@ -14,13 +15,15 @@ public class PortalConnection {
     static final String PASSWORD = "postgres";
 
     // For connecting to the chalmers database server (from inside chalmers)
-    // static final String DATABASE = "jdbc:postgresql://brage.ita.chalmers.se/";
-    // static final String USERNAME = "tda357_nnn";
-    // static final String PASSWORD = "yourPasswordGoesHere";
+    /*
+    static final String DATABASE = "jdbc:postgresql://brage.ita.chalmers.se/";
+    static final String USERNAME = "tda357_nnn";
+    static final String PASSWORD = "yourPasswordGoesHere";
+    */
 
 
     // This is the JDBC connection object you will be using in your methods.
-    private Connection conn;
+    private final Connection conn;
 
     public PortalConnection() throws SQLException, ClassNotFoundException {
         this(DATABASE, USERNAME, PASSWORD);  
@@ -38,14 +41,21 @@ public class PortalConnection {
 
     // Register a student on a course, returns a tiny JSON document (as a String)
     public String register(String student, String courseCode){
-      
-      // placeholder, remove along with this comment. 
-      return "{\"success\":false, \"error\":\"Registration is not implemented yet :(\"}";
-      
-      // Here's a bit of useful code, use it or delete it 
-      // } catch (SQLException e) {
-      //    return "{\"success\":false, \"error\":\""+getError(e)+"\"}";
-      // }     
+        // insert student into course
+        try(PreparedStatement st = conn.prepareStatement(
+            "INSERT INTO Registrations VALUES (?,?)"
+            )){
+
+            st.setString(1, student);
+            st.setString(2, courseCode);
+
+            st.executeUpdate();
+
+            return "{\"success\":true}";
+
+        } catch (SQLException e) {
+            return "{\"success\":false, \"error\":\""+getError(e)+"\"}";
+        }
     }
 
     // Unregister a student from a course, returns a tiny JSON document (as a String)
@@ -53,14 +63,14 @@ public class PortalConnection {
         // delete student from course
         try(PreparedStatement st = conn.prepareStatement(
             "DELETE FROM Registrations WHERE student=? AND course=?"
-            );){
+            )){
 
             st.setString(1, student);
             st.setString(2, course);
 
             st.executeUpdate();
 
-            return "{\"successfully unregistered\"}";
+            return "{\"success\":true}";
 
         } catch (SQLException e) {
             return "{\"success\":false, \"error\":\""+getError(e)+"\"}";
@@ -69,14 +79,33 @@ public class PortalConnection {
 
     // Return a JSON document containing lots of information about a student, it should validate against the schema found in information_schema.json
     public String getInfo(String student) throws SQLException{
-        
+
+        // Get the json from the schema in resources, throw an exception if it gets null
+        String pathToSchema;
+        try {
+            pathToSchema = PortalConnection.class.getResource("/information_schema.json").toString();
+        }
+        catch (NullPointerException e) {
+            throw new SQLException("Could not find schema in resources");
+        }
+        // Remove the "file:" part of the path
+        pathToSchema = pathToSchema.substring(5);
+        // Read the schema from the file
+        String schema;
+        try{
+            schema = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(pathToSchema)));
+        } catch (Exception e){
+            throw new SQLException("Could not read schema from resources");
+        }
+        JSONObject schemaJson = new JSONObject(schema);
+
         try(PreparedStatement st = conn.prepareStatement(
             // replace this with something more useful
             "SELECT jsonb_build_object('student',idnr,'name',name) AS jsondata FROM BasicInformation WHERE idnr=?"
-            );){
+            )){
             
             st.setString(1, student);
-            
+
             ResultSet rs = st.executeQuery();
             
             if(rs.next())
