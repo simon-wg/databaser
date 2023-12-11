@@ -73,7 +73,7 @@ public class PortalConnection {
             //"DELETE FROM Registrations WHERE student=? AND course=?"
                 "DELETE FROM Registrations WHERE student=\'" + student + "\' AND course=\'" + course + "\'"
             )){
-            //CCC222' OR 'a'='a
+            // USE THIS FOR INJECTION (' OR 'a'='a)
 
             /*
             st.setString(1, student);
