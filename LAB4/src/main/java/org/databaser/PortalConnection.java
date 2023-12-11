@@ -93,7 +93,7 @@ public class PortalConnection {
     public String getInfo(String student) throws SQLException{
 
         // Get the json from the schema in resources, throw an exception if it gets null
-        JSONObject jsonObject = new JSONObject();
+        JSONObject studentInformation = new JSONObject();
         ResultSet rs;
 
         try(PreparedStatement st = conn.prepareStatement(
@@ -106,11 +106,11 @@ public class PortalConnection {
             rs = st.executeQuery();
 
             if(rs.next()) {
-                jsonObject.put("student", rs.getString("student"));
-                jsonObject.put("name", rs.getString("name"));
-                jsonObject.put("login", rs.getString("login"));
-                jsonObject.put("program", rs.getString("program"));
-                jsonObject.put("branch", rs.getString("branch"));
+                studentInformation.put("student", rs.getString("student"));
+                studentInformation.put("name", rs.getString("name"));
+                studentInformation.put("login", rs.getString("login"));
+                studentInformation.put("program", rs.getString("program"));
+                studentInformation.put("branch", rs.getString("branch"));
             }
             else{
                 return "{\"student\":\"does not exist :(\"}";
@@ -130,7 +130,7 @@ public class PortalConnection {
                 course.put("code", rs.getString("course"));
                 course.put("credits", rs.getFloat("credits"));
                 course.put("grade", rs.getString("grade"));
-                jsonObject.accumulate("finished", course);
+                studentInformation.accumulate("finished", course);
             }
         }
         try(PreparedStatement st = conn.prepareStatement(
@@ -146,7 +146,7 @@ public class PortalConnection {
                 course.put("course", rs.getString("name"));
                 course.put("code", rs.getString("course"));
                 course.put("status", rs.getString("status"));
-                jsonObject.append("registered", course);
+                studentInformation.append("registered", course);
             }
         }
         try (PreparedStatement st = conn.prepareStatement(
@@ -158,16 +158,16 @@ public class PortalConnection {
             rs = st.executeQuery();
 
             if (rs.next()) {
-                jsonObject.put("seminarCourses", rs.getInt("seminarcourses"));
-                jsonObject.put("mathCredits", rs.getFloat("mathcredits"));
-                jsonObject.put("totalCredits", rs.getFloat("totalcredits"));
-                jsonObject.put("canGraduate", rs.getBoolean("qualified"));
+                studentInformation.put("seminarCourses", rs.getInt("seminarcourses"));
+                studentInformation.put("mathCredits", rs.getFloat("mathcredits"));
+                studentInformation.put("totalCredits", rs.getFloat("totalcredits"));
+                studentInformation.put("canGraduate", rs.getBoolean("qualified"));
             }
             else {
-                jsonObject.put("seminarCourses", 0);
-                jsonObject.put("mathCredits", 0);
-                jsonObject.put("totalCredits", 0);
-                jsonObject.put("canGraduate", false);
+                studentInformation.put("seminarCourses", 0);
+                studentInformation.put("mathCredits", 0);
+                studentInformation.put("totalCredits", 0);
+                studentInformation.put("canGraduate", false);
             }
         }
         try {
@@ -184,7 +184,7 @@ public class PortalConnection {
             }
             JsonNode validation;
             try {
-                validation = JsonLoader.fromString(jsonObject.toString());
+                validation = JsonLoader.fromString(studentInformation.toString());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -192,7 +192,7 @@ public class PortalConnection {
         } catch (ProcessingException e) {
             throw new RuntimeException(e);
         }
-        return jsonObject.toString();
+        return studentInformation.toString();
     }
 
     // This is a hack to turn an SQLException into a JSON string error message. No need to change.
