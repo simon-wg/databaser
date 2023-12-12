@@ -38,6 +38,9 @@ $$ LANGUAGE plpgsql;
 CREATE FUNCTION on_registration_delete() RETURNS trigger AS
 $$
 BEGIN
+    IF NOT EXISTS (SELECT * FROM Registrations WHERE student = OLD.student and course = OLD.course) THEN
+      RAISE EXCEPTION 'Student is not registered for the course';
+    END IF;
     IF EXISTS (SELECT * FROM WaitingList WHERE student = OLD.student AND course = OLD.course) THEN
         DELETE FROM WaitingList WHERE student = OLD.student AND course = OLD.course;
     ELSE
